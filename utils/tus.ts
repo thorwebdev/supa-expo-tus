@@ -22,12 +22,12 @@ export async function uploadFile(
   bucketName: string,
   file: ImagePicker.ImagePickerResult
 ) {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<void>(async (resolve, reject) => {
     const extension = getFileExtension(file.assets[0].uri);
     console.log({ extension });
-    // The reason this works is this hidden magic: https://github.com/tus/tus-js-client/blob/main/lib/browser/fileReader.js#L9-L13
-    // @ts-ignore TODO: fix tus types
-    let upload = new Upload(file.assets[0], {
+    // TODO: improve tus-js-client: https://github.com/tus/tus-js-client/blob/main/lib/browser/fileReader.js#L9-L13
+    const blob = await fetch(file.assets[0].uri).then((res) => res.blob());
+    let upload = new Upload(blob, {
       endpoint: `https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`,
       retryDelays: [0, 3000, 5000, 10000, 20000],
       headers: {
