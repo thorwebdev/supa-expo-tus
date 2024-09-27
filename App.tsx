@@ -1,6 +1,14 @@
-import * as React from "react";
-import { ActivityIndicator, Button, Image, StatusBar, Text, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import * as React from 'react';
+import {
+  ActivityIndicator,
+  Button,
+  Image,
+  StatusBar,
+  Text,
+  View,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { uploadFile } from './utils/tus';
 
 export default class App extends React.Component {
   state = {
@@ -10,12 +18,12 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text
           style={{
             fontSize: 20,
             marginBottom: 20,
-            textAlign: "center",
+            textAlign: 'center',
             marginHorizontal: 15,
           }}
         >
@@ -64,7 +72,7 @@ export default class App extends React.Component {
             width: 250,
             borderRadius: 3,
             elevation: 2,
-            shadowColor: "rgba(0,0,0,1)",
+            shadowColor: 'rgba(0,0,0,1)',
             shadowOpacity: 0.2,
             shadowOffset: { width: 4, height: 4 },
             shadowRadius: 5,
@@ -74,7 +82,7 @@ export default class App extends React.Component {
             style={{
               borderTopRightRadius: 3,
               borderTopLeftRadius: 3,
-              overflow: "hidden",
+              overflow: 'hidden',
             }}
           >
             <Image
@@ -95,20 +103,20 @@ export default class App extends React.Component {
   _askPermission = async (failureMessage) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (status === "denied") {
+    if (status === 'denied') {
       alert(failureMessage);
     }
   };
   _askCameraPermission = async (failureMessage) => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status === "denied") {
+    if (status === 'denied') {
       alert(failureMessage);
     }
   };
 
   _takePhoto = async () => {
     await this._askCameraPermission(
-      "We need the camera permission to take a picture..."
+      'We need the camera permission to take a picture...'
     );
     let pickerResult = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
@@ -120,7 +128,7 @@ export default class App extends React.Component {
 
   _pickImage = async () => {
     await this._askPermission(
-      "We need the camera-roll permission to read pictures from your phone..."
+      'We need the camera-roll permission to read pictures from your phone...'
     );
 
     let pickerResult = await ImagePicker.launchImageLibraryAsync({
@@ -131,59 +139,24 @@ export default class App extends React.Component {
     this._handleImagePicked(pickerResult);
   };
 
-  _handleImagePicked = async (pickerResult) => {
+  _handleImagePicked = async (pickerResult: ImagePicker.ImagePickerResult) => {
+    console.log(JSON.stringify(pickerResult, null, 2));
     let uploadResponse, uploadResult;
 
     try {
       this.setState({ uploading: true });
 
-      if (!pickerResult.cancelled) {
-        uploadResponse = await uploadImageAsync(pickerResult.uri);
-        uploadResult = await uploadResponse.json();
-        console.log({ uploadResult });
-        this.setState({ image: uploadResult.files.photo });
+      if (!pickerResult.canceled) {
+        await uploadFile('tus', pickerResult);
+        this.setState({ image: pickerResult.assets[0].uri });
       }
     } catch (e) {
       console.log({ uploadResponse });
       console.log({ uploadResult });
       console.log({ e });
-      alert("Upload failed, sorry :(");
+      alert('Upload failed, sorry :(');
     } finally {
       this.setState({ uploading: false });
     }
   };
-}
-
-async function uploadImageAsync(uri) {
-  let apiUrl = "https://httpbin.org/post";
-
-  // Note:
-  // Uncomment this if you want to experiment with local server
-  //
-  // if (Constants.isDevice) {
-  //   apiUrl = `https://your-ngrok-subdomain.ngrok.io/upload`;
-  // } else {
-  //   apiUrl = `http://localhost:3000/upload`
-  // }
-  let uriArray = uri.split(".");
-  let fileType = uriArray[uriArray.length - 1];
-
-  let formData = new FormData();
-  formData.append("photo", {
-    uri,
-    name: `photo.${fileType}`,
-    type: `image/${fileType}`,
-  });
-
-  let options = {
-    method: "POST",
-    body: formData,
-    mode: 'cors',
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "multipart/form-data",
-    },
-  };
-
-  return fetch(apiUrl, options);
 }
