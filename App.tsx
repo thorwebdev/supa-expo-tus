@@ -8,7 +8,9 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadFile } from './utils/tus';
+import * as DocumentPicker from 'expo-document-picker';
+
+import { uploadFiles } from './utils/tus';
 
 export default class App extends React.Component {
   state = {
@@ -27,7 +29,7 @@ export default class App extends React.Component {
             marginHorizontal: 15,
           }}
         >
-          Example: Upload ImagePicker result
+          Example: Upload Images or Documents
         </Text>
 
         {this._maybeRenderControls()}
@@ -49,6 +51,9 @@ export default class App extends React.Component {
     if (!this.state.uploading) {
       return (
         <View>
+          <View style={{ marginVertical: 8 }}>
+            <Button onPress={this._pickDoc} title="Pick a document" />
+          </View>
           <View style={{ marginVertical: 8 }}>
             <Button
               onPress={this._pickImage}
@@ -123,7 +128,7 @@ export default class App extends React.Component {
       aspect: [4, 3],
     });
 
-    this._handleImagePicked(pickerResult);
+    this._handleAssetsPicked(pickerResult);
   };
 
   _pickImage = async () => {
@@ -132,27 +137,34 @@ export default class App extends React.Component {
     );
 
     let pickerResult = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: true,
     });
 
-    this._handleImagePicked(pickerResult);
+    this._handleAssetsPicked(pickerResult);
   };
 
-  _handleImagePicked = async (pickerResult: ImagePicker.ImagePickerResult) => {
-    console.log(JSON.stringify(pickerResult, null, 2));
-    let uploadResponse, uploadResult;
+  _pickDoc = async () => {
+    let pickerResult = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: false,
+      multiple: true,
+    });
 
+    this._handleAssetsPicked(pickerResult);
+  };
+
+  _handleAssetsPicked = async (
+    pickerResult:
+      | ImagePicker.ImagePickerResult
+      | DocumentPicker.DocumentPickerResult
+  ) => {
     try {
       this.setState({ uploading: true });
 
       if (!pickerResult.canceled) {
-        await uploadFile('tus', pickerResult);
-        this.setState({ image: pickerResult.assets[0].uri });
+        await uploadFiles('tus', pickerResult);
       }
     } catch (e) {
-      console.log({ uploadResponse });
-      console.log({ uploadResult });
       console.log({ e });
       alert('Upload failed, sorry :(');
     } finally {
