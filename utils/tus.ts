@@ -55,7 +55,7 @@ export async function uploadFiles(
             console.log(bytesUploaded, bytesTotal, percentage + '%');
           },
           onSuccess: function () {
-            console.log('Download %s', upload.options.metadata.objectName);
+            console.log('Uploaded %s', upload.options.metadata.objectName);
             resolve();
           },
         });
