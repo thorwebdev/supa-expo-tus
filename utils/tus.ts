@@ -28,7 +28,6 @@ export async function uploadFiles(
     ) => {
       return new Promise<void>(async (resolve, reject) => {
         const extension = getFileExtension(file.uri);
-        // TODO: improve tus-js-client: https://github.com/tus/tus-js-client/blob/main/lib/browser/fileReader.js#L9-L13
         const blob = await fetch(file.uri).then((res) => res.blob());
         let upload = new Upload(blob, {
           endpoint: `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
@@ -41,6 +40,7 @@ export async function uploadFiles(
           removeFingerprintOnSuccess: true, // Important if you want to allow re-uploading the same file https://github.com/tus/tus-js-client/blob/main/docs/api.md#removefingerprintonsuccess
           metadata: {
             bucketName: bucketName,
+            // @ts-ignore TODO: check why types are acting up here.
             objectName: file?.name ?? file?.fileName ?? Date.now(),
             contentType: getMimeType(extension),
             cacheControl: '3600',

@@ -1,12 +1,5 @@
 import * as React from 'react';
-import {
-  ActivityIndicator,
-  Button,
-  Image,
-  StatusBar,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Button, StatusBar, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -34,7 +27,6 @@ export default class App extends React.Component {
 
         {this._maybeRenderControls()}
         {this._maybeRenderUploadingIndicator()}
-        {this._maybeRenderImage()}
 
         <StatusBar barStyle="default" />
       </View>
@@ -63,43 +55,6 @@ export default class App extends React.Component {
           <View style={{ marginVertical: 8 }}>
             <Button onPress={this._takePhoto} title="Take a photo" />
           </View>
-        </View>
-      );
-    }
-  };
-
-  _maybeRenderImage = () => {
-    if (this.state.image) {
-      return (
-        <View
-          style={{
-            marginTop: 30,
-            width: 250,
-            borderRadius: 3,
-            elevation: 2,
-            shadowColor: 'rgba(0,0,0,1)',
-            shadowOpacity: 0.2,
-            shadowOffset: { width: 4, height: 4 },
-            shadowRadius: 5,
-          }}
-        >
-          <View
-            style={{
-              borderTopRightRadius: 3,
-              borderTopLeftRadius: 3,
-              overflow: 'hidden',
-            }}
-          >
-            <Image
-              source={{ uri: this.state.image }}
-              style={{ width: 250, height: 250 }}
-            />
-          </View>
-
-          <Image
-            style={{ paddingVertical: 10, paddingHorizontal: 10 }}
-            source={{ uri: this.state.image }}
-          />
         </View>
       );
     }
